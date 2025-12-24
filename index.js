@@ -1,20 +1,20 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('./database'); // Init DB
+// require('./database'); // Init DB temporarily disabled for debugging
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const authRoutes = require('./routes/auth');
+// const authRoutes = require('./routes/auth'); // Disabled for debug
 
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/auth', authRoutes);
-app.use('/api/admin', require('./routes/admin'));
-app.use('/api/teacher', require('./routes/teacher'));
-app.use('/api/student', require('./routes/student'));
+// app.use('/api/auth', authRoutes);
+// app.use('/api/admin', require('./routes/admin'));
+// app.use('/api/teacher', require('./routes/teacher'));
+// app.use('/api/student', require('./routes/student'));
 
 // Serve static files from the React client
 app.use(express.static(path.join(__dirname, 'client/dist')));
