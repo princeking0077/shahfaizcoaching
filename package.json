@@ -2,13 +2,13 @@
   "name": "kalam-coaching-institute",
   "version": "1.0.1",
   "description": "",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "cd client && npm install && npm run build",
     "postinstall": "npm run build",
-    "start": "node server.js",
-    "dev": "concurrently \"nodemon server.js\" \"cd client && npm run dev\""
+    "start": "node index.js",
+    "dev": "concurrently \"nodemon index.js\" \"cd client && npm run dev\""
   },
   "keywords": [],
   "author": "",
