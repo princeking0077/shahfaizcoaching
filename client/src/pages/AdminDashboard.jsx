@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Users, BookOpen, DollarSign, Plus, LogOut, LayoutDashboard, Search, Bell, Settings } from 'lucide-react';
+import { Users, BookOpen, DollarSign, Plus, LogOut, LayoutDashboard, Search, Bell, Settings, Menu, X } from 'lucide-react';
 
 const AdminDashboard = () => {
     const { user, logout } = useAuth();
@@ -12,6 +12,7 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [showAddTeacher, setShowAddTeacher] = useState(false);
     const [newTeacher, setNewTeacher] = useState({ name: '', username: '', email: '', password: '' });
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -40,7 +41,7 @@ const AdminDashboard = () => {
         e.preventDefault();
         const token = localStorage.getItem('token');
         try {
-            const res = await fetch('http://localhost:5000/api/admin/teachers', {
+            const res = await fetch('/api/admin/teachers', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(newTeacher)
@@ -59,21 +60,31 @@ const AdminDashboard = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 flex font-sans">
+            {/* Mobile Sidebar Overlay */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-20 lg:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                ></div>
+            )}
+
             {/* Sidebar */}
-            <aside className="fixed left-0 top-0 h-full w-72 bg-slate-900 text-white z-20 flex flex-col shadow-2xl">
-                <div className="p-6 border-b border-slate-800">
+            <aside className={`fixed inset-y-0 left-0 z-30 w-72 bg-slate-900 text-white flex flex-col shadow-2xl transition-transform duration-300 transform lg:translate-x-0 lg:static ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className="p-6 border-b border-slate-800 flex justify-between items-center">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-bold text-xl">K</div>
                         <span className="text-xl font-bold tracking-tight">Kalam Admin</span>
                     </div>
+                    <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-slate-400">
+                        <X size={24} />
+                    </button>
                 </div>
 
                 <div className="p-4 flex-1 space-y-2 mt-4">
                     <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 mb-2">Main Menu</div>
-                    <SidebarItem icon={<LayoutDashboard size={20} />} label="Overview" active={false} onClick={() => { }} />
-                    <SidebarItem icon={<Users size={20} />} label="Teachers" active={activeTab === 'teachers'} onClick={() => setActiveTab('teachers')} />
-                    <SidebarItem icon={<BookOpen size={20} />} label="Students" active={activeTab === 'students'} onClick={() => setActiveTab('students')} />
-                    <SidebarItem icon={<DollarSign size={20} />} label="Fee Management" active={activeTab === 'fees'} onClick={() => setActiveTab('fees')} />
+                    <SidebarItem icon={<Users size={20} />} label="Teachers" active={activeTab === 'teachers'} onClick={() => { setActiveTab('teachers'); setIsSidebarOpen(false); }} />
+                    <SidebarItem icon={<BookOpen size={20} />} label="Students" active={activeTab === 'students'} onClick={() => { setActiveTab('students'); setIsSidebarOpen(false); }} />
+                    <SidebarItem icon={<DollarSign size={20} />} label="Fee Management" active={activeTab === 'fees'} onClick={() => { setActiveTab('fees'); setIsSidebarOpen(false); }} />
                 </div>
 
                 <div className="p-4 border-t border-slate-800">
@@ -85,12 +96,17 @@ const AdminDashboard = () => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 ml-72">
+            <main className="flex-1 w-full lg:w-auto transition-all">
                 {/* Header */}
-                <header className="bg-white h-20 border-b border-slate-200 sticky top-0 z-10 px-8 flex justify-between items-center shadow-sm">
-                    <div className="flex items-center gap-4 bg-slate-100 px-4 py-2 rounded-lg w-96">
-                        <Search size={20} className="text-slate-400" />
-                        <input placeholder="Search records..." className="bg-transparent border-none outline-none text-slate-700 w-full" />
+                <header className="bg-white h-20 border-b border-slate-200 sticky top-0 z-10 px-4 lg:px-8 flex justify-between items-center shadow-sm">
+                    <div className="flex items-center gap-4 flex-1">
+                        <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
+                            <Menu size={24} />
+                        </button>
+                        <div className="hidden md:flex items-center gap-4 bg-slate-100 px-4 py-2 rounded-lg w-96">
+                            <Search size={20} className="text-slate-400" />
+                            <input placeholder="Search records..." className="bg-transparent border-none outline-none text-slate-700 w-full" />
+                        </div>
                     </div>
                     <div className="flex items-center gap-6">
                         <button className="relative p-2 text-slate-500 hover:text-blue-600 transition-colors">
@@ -103,22 +119,22 @@ const AdminDashboard = () => {
                     </div>
                 </header>
 
-                <div className="p-8 max-w-7xl mx-auto">
+                <div className="p-4 lg:p-8 max-w-7xl mx-auto">
                     {/* Header Section */}
-                    <div className="flex justify-between items-end mb-8">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
                         <div>
                             <h1 className="text-3xl font-bold text-slate-900 capitalize mb-2">{activeTab}</h1>
                             <p className="text-slate-500">Manage your institute's {activeTab} data efficiently.</p>
                         </div>
                         {activeTab === 'teachers' && (
-                            <button onClick={() => setShowAddTeacher(true)} className="btn btn-primary flex items-center gap-2 shadow-lg shadow-blue-500/20">
+                            <button onClick={() => setShowAddTeacher(true)} className="btn btn-primary flex items-center gap-2 shadow-lg shadow-blue-500/20 w-full md:w-auto justify-center">
                                 <Plus size={20} /> Add New Teacher
                             </button>
                         )}
                     </div>
 
                     {/* Stats Cards Row (Placeholder for "Overview") */}
-                    <div className="grid grid-cols-3 gap-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <StatCard label="Total Students" value="1,240" color="bg-blue-500" />
                         <StatCard label="Active Teachers" value="48" color="bg-indigo-500" />
                         <StatCard label="Pending Fees" value="₹ 2.5L" color="bg-orange-500" />
@@ -133,12 +149,12 @@ const AdminDashboard = () => {
                                 {showAddTeacher && (
                                     <div className="mb-8 p-6 bg-slate-50 rounded-xl border border-slate-200 animate-fade-in-up">
                                         <h3 className="font-bold text-lg mb-4 text-slate-800">Add New Teacher</h3>
-                                        <form onSubmit={handleAddTeacher} className="grid grid-cols-2 gap-4">
+                                        <form onSubmit={handleAddTeacher} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <input required placeholder="Full Name" className="input-field" value={newTeacher.name} onChange={e => setNewTeacher({ ...newTeacher, name: e.target.value })} />
                                             <input required placeholder="Username" className="input-field" value={newTeacher.username} onChange={e => setNewTeacher({ ...newTeacher, username: e.target.value })} />
                                             <input required placeholder="Email Address" type="email" className="input-field" value={newTeacher.email} onChange={e => setNewTeacher({ ...newTeacher, email: e.target.value })} />
                                             <input required placeholder="Password" type="password" className="input-field" value={newTeacher.password} onChange={e => setNewTeacher({ ...newTeacher, password: e.target.value })} />
-                                            <div className="col-span-2 flex justify-end gap-3 mt-2">
+                                            <div className="md:col-span-2 flex justify-end gap-3 mt-2">
                                                 <button type="button" onClick={() => setShowAddTeacher(false)} className="btn btn-outline py-2">Cancel</button>
                                                 <button type="submit" className="btn btn-primary py-2">Save Teacher</button>
                                             </div>
@@ -170,37 +186,39 @@ const AdminDashboard = () => {
 
                         {/* Students Tab */}
                         {activeTab === 'students' && (
-                            <table className="w-full text-left border-collapse">
-                                <thead className="bg-slate-50 text-slate-600 text-sm uppercase tracking-wider font-semibold border-b border-slate-200">
-                                    <tr>
-                                        <th className="p-6">Student Name</th>
-                                        <th className="p-6">Batch</th>
-                                        <th className="p-6">Parent Info</th>
-                                        <th className="p-6">Contact</th>
-                                        <th className="p-6">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {students.map((s) => (
-                                        <tr key={s.id} className="hover:bg-slate-50 transition-colors">
-                                            <td className="p-6">
-                                                <div className="font-bold text-slate-900">{s.name}</div>
-                                            </td>
-                                            <td className="p-6">
-                                                <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold border border-blue-100">
-                                                    {s.batch_name || 'Unassigned'}
-                                                </span>
-                                            </td>
-                                            <td className="p-6 text-slate-600">{s.parent_name}</td>
-                                            <td className="p-6 text-slate-600">{s.phone}</td>
-                                            <td className="p-6">
-                                                <span className="w-2 h-2 rounded-full bg-green-500 inline-block mr-2"></span>
-                                                <span className="text-green-600 font-medium text-sm">Active</span>
-                                            </td>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse min-w-[700px]">
+                                    <thead className="bg-slate-50 text-slate-600 text-sm uppercase tracking-wider font-semibold border-b border-slate-200">
+                                        <tr>
+                                            <th className="p-6">Student Name</th>
+                                            <th className="p-6">Batch</th>
+                                            <th className="p-6">Parent Info</th>
+                                            <th className="p-6">Contact</th>
+                                            <th className="p-6">Status</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {students.map((s) => (
+                                            <tr key={s.id} className="hover:bg-slate-50 transition-colors">
+                                                <td className="p-6">
+                                                    <div className="font-bold text-slate-900">{s.name}</div>
+                                                </td>
+                                                <td className="p-6">
+                                                    <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold border border-blue-100">
+                                                        {s.batch_name || 'Unassigned'}
+                                                    </span>
+                                                </td>
+                                                <td className="p-6 text-slate-600">{s.parent_name}</td>
+                                                <td className="p-6 text-slate-600">{s.phone}</td>
+                                                <td className="p-6">
+                                                    <span className="w-2 h-2 rounded-full bg-green-500 inline-block mr-2"></span>
+                                                    <span className="text-green-600 font-medium text-sm">Active</span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         )}
 
                         {/* Fees Tab */}

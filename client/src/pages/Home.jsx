@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Users, Award, ArrowRight, CheckCircle, Smartphone, MapPin, Phone, Mail, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { BookOpen, Users, Award, ArrowRight, CheckCircle, Smartphone, MapPin, Phone, Mail, Facebook, Twitter, Instagram, Linkedin, Menu, X } from 'lucide-react';
 
 const Home = () => {
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
     return (
         <div className="bg-slate-50 min-h-screen text-slate-900 font-sans scroll-smooth">
             {/* Navbar */}
@@ -11,42 +14,71 @@ const Home = () => {
                         <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-600/20">K</div>
                         <span className="text-xl font-bold text-slate-900 tracking-tight">Kalam Coaching</span>
                     </div>
+
+                    {/* Desktop Menu */}
                     <div className="hidden md:flex gap-8 font-medium text-slate-600">
                         <a href="#about" className="hover:text-blue-600 transition-colors">About</a>
                         <a href="#courses" className="hover:text-blue-600 transition-colors">Courses</a>
                         <a href="#faculty" className="hover:text-blue-600 transition-colors">Faculty</a>
                         <a href="#contact" className="hover:text-blue-600 transition-colors">Contact</a>
                     </div>
-                    <Link to="/login" className="btn btn-primary text-sm py-2.5 px-5 shadow-lg shadow-blue-500/30 rounded-full">
-                        Student Portal
-                    </Link>
+
+                    <div className="hidden md:block">
+                        <Link to="/login" className="btn btn-primary text-sm py-2.5 px-5 shadow-lg shadow-blue-500/30 rounded-full">
+                            Student Portal
+                        </Link>
+                    </div>
+
+                    {/* Mobile Menu Button */}
+                    <button
+                        className="md:hidden p-2 text-slate-600 hover:text-blue-600 transition-colors"
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    >
+                        {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
                 </div>
+
+                {/* Mobile Menu Dropdown */}
+                {isMobileMenuOpen && (
+                    <div className="md:hidden bg-white border-t border-slate-100 absolute w-full shadow-xl animate-fade-in">
+                        <div className="container mx-auto px-4 py-4 flex flex-col gap-4">
+                            <a href="#about" className="py-2 text-slate-600 font-medium hover:text-blue-600" onClick={() => setIsMobileMenuOpen(false)}>About</a>
+                            <a href="#courses" className="py-2 text-slate-600 font-medium hover:text-blue-600" onClick={() => setIsMobileMenuOpen(false)}>Courses</a>
+                            <a href="#faculty" className="py-2 text-slate-600 font-medium hover:text-blue-600" onClick={() => setIsMobileMenuOpen(false)}>Faculty</a>
+                            <a href="#contact" className="py-2 text-slate-600 font-medium hover:text-blue-600" onClick={() => setIsMobileMenuOpen(false)}>Contact</a>
+                            <hr className="border-slate-100" />
+                            <Link to="/login" className="btn btn-primary text-center py-3 rounded-xl" onClick={() => setIsMobileMenuOpen(false)}>
+                                Student Portal Login
+                            </Link>
+                        </div>
+                    </div>
+                )}
             </nav>
 
             {/* Hero Section */}
-            <header className="bg-white pt-20 pb-32 border-b border-slate-100 relative overflow-hidden">
-                <div className="container mx-auto px-4 grid lg:grid-cols-2 gap-16 items-center relative z-10">
-                    <div className="space-y-8 animate-fade-in-up">
+            <header className="bg-white pt-12 pb-20 lg:pt-20 lg:pb-32 border-b border-slate-100 relative overflow-hidden">
+                <div className="container mx-auto px-4 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center relative z-10">
+                    <div className="space-y-6 lg:space-y-8 animate-fade-in-up order-2 lg:order-1">
                         <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full font-bold text-xs border border-blue-100 uppercase tracking-wide">
                             <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span> Admissions Open 2024-25
                         </div>
-                        <h1 className="text-5xl lg:text-7xl font-extrabold text-slate-900 leading-[1.1]">
+                        <h1 className="text-4xl lg:text-7xl font-extrabold text-slate-900 leading-[1.1]">
                             Unlock Your <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">True Potential.</span>
                         </h1>
-                        <p className="text-lg text-slate-600 max-w-lg leading-relaxed">
+                        <p className="text-base lg:text-lg text-slate-600 max-w-lg leading-relaxed">
                             Join the region's premier coaching institute. We combine expert pedagogy, modern technology, and personalized mentorship to create toppers properly.
                         </p>
-                        <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                        <div className="flex flex-col sm:flex-row gap-4 pt-2">
                             <Link to="/login" className="btn btn-primary text-lg px-8 py-4 rounded-full shadow-xl shadow-blue-500/20 flex justify-center items-center gap-2 transform hover:-translate-y-1 transition-transform">
                                 Enroll Now <ArrowRight size={20} />
                             </Link>
-                            <a href="#courses" className="btn btn-outline text-lg px-8 py-4 rounded-full border-2 hover:bg-slate-50">
+                            <a href="#courses" className="btn btn-outline text-lg px-8 py-4 rounded-full border-2 hover:bg-slate-50 text-center">
                                 Explore Courses
                             </a>
                         </div>
 
-                        <div className="pt-8 border-t border-slate-100 flex gap-8 text-slate-500 text-sm font-semibold">
+                        <div className="pt-6 border-t border-slate-100 flex flex-wrap gap-4 lg:gap-8 text-slate-500 text-sm font-semibold">
                             <div className="flex items-center gap-2">
                                 <CheckCircle size={18} className="text-green-500" /> 100% Scholarship
                             </div>
@@ -57,23 +89,23 @@ const Home = () => {
                     </div>
 
                     {/* Hero Graphic */}
-                    <div className="relative">
+                    <div className="relative order-1 lg:order-2">
                         <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/20 to-purple-600/20 rounded-[3rem] blur-3xl transform rotate-6"></div>
                         <div className="relative bg-white rounded-[2rem] border border-slate-200 shadow-2xl p-2 overflow-hidden transform hover:scale-[1.02] transition-transform duration-500">
-                            <img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Students Learning" className="rounded-[1.8rem] w-full object-cover h-[500px]" />
+                            <img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Students Learning" className="rounded-[1.8rem] w-full object-cover h-[300px] lg:h-[500px]" />
                         </div>
                     </div>
                 </div>
 
                 {/* Background Decor */}
-                <div className="absolute top-0 right-0 w-1/3 h-full bg-slate-50 skew-x-12 -z-0 opacity-50"></div>
+                <div className="absolute top-0 right-0 w-1/3 h-full bg-slate-50 skew-x-12 -z-0 opacity-50 hidden lg:block"></div>
             </header>
 
             {/* Features / Why Choose Us */}
-            <section id="about" className="py-24 bg-white">
+            <section id="about" className="py-16 lg:py-24 bg-white">
                 <div className="container mx-auto px-4">
-                    <div className="text-center max-w-2xl mx-auto mb-20">
-                        <h2 className="text-4xl font-bold text-slate-900 mb-6">Why Choose Kalam Coaching?</h2>
+                    <div className="text-center max-w-2xl mx-auto mb-16">
+                        <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-6">Why Choose Kalam Coaching?</h2>
                         <p className="text-slate-600 text-lg">We don't just teach chapters; we build character, discipline, and academic excellence.</p>
                     </div>
 
@@ -98,11 +130,11 @@ const Home = () => {
             </section>
 
             {/* Courses Section */}
-            <section id="courses" className="py-24 bg-slate-50">
+            <section id="courses" className="py-16 lg:py-24 bg-slate-50">
                 <div className="container mx-auto px-4">
-                    <div className="flex justify-between items-end mb-12">
+                    <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
                         <div className="max-w-xl">
-                            <h2 className="text-4xl font-bold text-slate-900 mb-4">Our Popular Courses</h2>
+                            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">Our Popular Courses</h2>
                             <p className="text-slate-600">Tailored programs to meet specific academic goals.</p>
                         </div>
                         <button className="hidden md:block btn btn-outline rounded-full px-6">View All</button>
@@ -132,15 +164,15 @@ const Home = () => {
             </section>
 
             {/* CTA Section */}
-            <section className="py-24 bg-slate-900 text-white relative overflow-hidden">
+            <section className="py-16 lg:py-24 bg-slate-900 text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600 rounded-full blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2"></div>
                 <div className="container mx-auto px-4 text-center relative z-10">
-                    <h2 className="text-4xl lg:text-5xl font-bold mb-8">Ready to start your journey?</h2>
-                    <p className="text-slate-400 text-xl mb-10 max-w-2xl mx-auto">
+                    <h2 className="text-3xl lg:text-5xl font-bold mb-6 lg:mb-8">Ready to start your journey?</h2>
+                    <p className="text-slate-400 text-lg lg:text-xl mb-8 lg:mb-10 max-w-2xl mx-auto">
                         Admissions open for the new academic session. Book a free demo class today and experience the difference.
                     </p>
                     <div className="flex justify-center gap-4">
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-full transition-all shadow-lg shadow-blue-600/30">
+                        <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-full transition-all shadow-lg shadow-blue-600/30 w-full sm:w-auto">
                             Book Demo Class
                         </button>
                     </div>

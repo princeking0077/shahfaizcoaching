@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { User, CheckCircle, XCircle, DollarSign, LogOut, LayoutDashboard, Calendar, FileText, ChevronRight, Clock, Award } from 'lucide-react';
+import { User, CheckCircle, XCircle, DollarSign, LogOut, LayoutDashboard, Calendar, FileText, ChevronRight, Clock, Award, Menu, X } from 'lucide-react';
 
 const StudentDashboard = () => {
     const { logout, user } = useAuth();
@@ -10,6 +10,7 @@ const StudentDashboard = () => {
     const [attendance, setAttendance] = useState([]);
     const [fees, setFees] = useState([]);
     const [activeTab, setActiveTab] = useState('overview');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -43,19 +44,30 @@ const StudentDashboard = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 flex font-sans">
+            {/* Mobile Sidebar Overlay */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-20 lg:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                ></div>
+            )}
+
             {/* Sidebar */}
-            <aside className="fixed left-0 top-0 h-full w-72 bg-slate-900 text-white z-20 flex flex-col shadow-2xl">
-                <div className="p-6 border-b border-slate-800">
+            <aside className={`fixed inset-y-0 left-0 z-30 w-72 bg-slate-900 text-white flex flex-col shadow-2xl transition-transform duration-300 transform lg:translate-x-0 lg:static ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className="p-6 border-b border-slate-800 flex justify-between items-center">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-bold text-xl">K</div>
                         <span className="text-xl font-bold tracking-tight">Student Portal</span>
                     </div>
+                    <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-slate-400">
+                        <X size={24} />
+                    </button>
                 </div>
 
                 <div className="p-4 flex-1 space-y-2 mt-4">
-                    <SidebarItem icon={<LayoutDashboard size={20} />} label="Overview" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
-                    <SidebarItem icon={<Calendar size={20} />} label="Attendance History" active={activeTab === 'attendance'} onClick={() => setActiveTab('attendance')} />
-                    <SidebarItem icon={<FileText size={20} />} label="Fee Status" active={activeTab === 'fees'} onClick={() => setActiveTab('fees')} />
+                    <SidebarItem icon={<LayoutDashboard size={20} />} label="Overview" active={activeTab === 'overview'} onClick={() => { setActiveTab('overview'); setIsSidebarOpen(false); }} />
+                    <SidebarItem icon={<Calendar size={20} />} label="Attendance History" active={activeTab === 'attendance'} onClick={() => { setActiveTab('attendance'); setIsSidebarOpen(false); }} />
+                    <SidebarItem icon={<FileText size={20} />} label="Fee Status" active={activeTab === 'fees'} onClick={() => { setActiveTab('fees'); setIsSidebarOpen(false); }} />
                 </div>
 
                 <div className="p-4 border-t border-slate-800">
@@ -67,11 +79,17 @@ const StudentDashboard = () => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 ml-72">
-                <header className="bg-white h-20 border-b border-slate-200 sticky top-0 z-10 px-8 flex justify-between items-center shadow-sm">
-                    <h1 className="text-2xl font-bold text-slate-800 capitalize">{activeTab.replace('_', ' ')}</h1>
+            <main className="flex-1 w-full lg:w-auto transition-all">
+                <header className="bg-white h-20 border-b border-slate-200 sticky top-0 z-10 px-4 lg:px-8 flex justify-between items-center shadow-sm">
                     <div className="flex items-center gap-4">
-                        <div className="text-right">
+                        <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
+                            <Menu size={24} />
+                        </button>
+                        <h1 className="text-xl lg:text-2xl font-bold text-slate-800 capitalize">{activeTab.replace('_', ' ')}</h1>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <div className="text-right hidden sm:block">
                             <div className="font-bold text-slate-900">{profile?.name || user?.username}</div>
                             <div className="text-xs text-slate-500">Class {profile?.batch_name || 'N/A'}</div>
                         </div>
@@ -81,14 +99,14 @@ const StudentDashboard = () => {
                     </div>
                 </header>
 
-                <div className="p-8 max-w-6xl mx-auto">
+                <div className="p-4 lg:p-8 max-w-6xl mx-auto">
                     {/* OVERVIEW TAB */}
                     {activeTab === 'overview' && (
-                        <div className="space-y-8">
+                        <div className="space-y-6 lg:space-y-8">
                             {/* Welcome Banner */}
-                            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
+                            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 lg:p-8 text-white shadow-lg relative overflow-hidden">
                                 <div className="relative z-10">
-                                    <h2 className="text-3xl font-bold mb-2">Welcome back, {profile?.name?.split(' ')[0]}! 👋</h2>
+                                    <h2 className="text-2xl lg:text-3xl font-bold mb-2">Welcome back! 👋</h2>
                                     <p className="text-blue-100 opacity-90">Here is your daily activity update.</p>
                                 </div>
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full -translate-y-1/2 translate-x-1/3 blur-2xl"></div>
@@ -167,28 +185,30 @@ const StudentDashboard = () => {
                     {/* ATTENDANCE TAB */}
                     {activeTab === 'attendance' && (
                         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                            <table className="w-full text-left">
-                                <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-                                    <tr>
-                                        <th className="p-4">Date</th>
-                                        <th className="p-4">Day</th>
-                                        <th className="p-4">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {attendance.map((a, i) => (
-                                        <tr key={i} className="hover:bg-slate-50">
-                                            <td className="p-4 font-medium text-slate-800">{new Date(a.date).toLocaleDateString()}</td>
-                                            <td className="p-4 text-slate-500">{new Date(a.date).toLocaleDateString('en-US', { weekday: 'long' })}</td>
-                                            <td className="p-4">
-                                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${a.status === 'present' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                                    {a.status.toUpperCase()}
-                                                </span>
-                                            </td>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left min-w-[500px]">
+                                    <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                                        <tr>
+                                            <th className="p-4">Date</th>
+                                            <th className="p-4">Day</th>
+                                            <th className="p-4">Status</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {attendance.map((a, i) => (
+                                            <tr key={i} className="hover:bg-slate-50">
+                                                <td className="p-4 font-medium text-slate-800">{new Date(a.date).toLocaleDateString()}</td>
+                                                <td className="p-4 text-slate-500">{new Date(a.date).toLocaleDateString('en-US', { weekday: 'long' })}</td>
+                                                <td className="p-4">
+                                                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${a.status === 'present' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                        {a.status.toUpperCase()}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     )}
 
@@ -196,8 +216,8 @@ const StudentDashboard = () => {
                     {activeTab === 'fees' && (
                         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                             {fees.map(f => (
-                                <div key={f.id} className="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center hover:bg-slate-50">
-                                    <div className="flex items-center gap-4 mb-4 md:mb-0">
+                                <div key={f.id} className="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center hover:bg-slate-50 gap-4">
+                                    <div className="flex items-center gap-4 w-full md:w-auto">
                                         <div className={`p-4 rounded-full ${f.status === 'paid' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}`}>
                                             <DollarSign size={24} />
                                         </div>
@@ -207,16 +227,16 @@ const StudentDashboard = () => {
                                         </div>
                                     </div>
 
-                                    <div className="text-right flex items-center gap-8">
-                                        <div>
-                                            <div className="text-sm text-slate-400 uppercase tracking-wider font-semibold">Total Amount</div>
+                                    <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+                                        <div className="text-right">
+                                            <div className="text-sm text-slate-400 uppercase tracking-wider font-semibold">Total</div>
                                             <div className="text-xl font-bold text-slate-800">₹{f.amount_total}</div>
                                         </div>
-                                        <div>
+                                        <div className="text-right">
                                             <div className="text-sm text-slate-400 uppercase tracking-wider font-semibold">Paid</div>
                                             <div className="text-xl font-bold text-green-600">₹{f.amount_paid}</div>
                                         </div>
-                                        <div className={`px-4 py-2 rounded-lg font-bold ${f.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                        <div className={`px-4 py-2 rounded-lg font-bold min-w-[80px] text-center ${f.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                                             {f.status.toUpperCase()}
                                         </div>
                                     </div>

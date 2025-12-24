@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Users, Clock, Calendar, ChevronLeft, Plus, CheckCircle, XCircle, LogOut, BookOpen, GraduationCap, LayoutDashboard, ChevronRight } from 'lucide-react';
+import { Users, Clock, Calendar, ChevronLeft, Plus, CheckCircle, XCircle, LogOut, BookOpen, GraduationCap, LayoutDashboard, ChevronRight, Menu, X } from 'lucide-react';
 
 const TeacherDashboard = () => {
     const { user, logout } = useAuth();
@@ -11,6 +11,7 @@ const TeacherDashboard = () => {
     const [students, setStudents] = useState([]);
     const [showCreateBatch, setShowCreateBatch] = useState(false);
     const [showAddStudent, setShowAddStudent] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // Forms
     const [newBatch, setNewBatch] = useState({ name: '', timing: '', subject: '' });
@@ -132,17 +133,28 @@ const TeacherDashboard = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 flex font-sans">
+            {/* Mobile Sidebar Overlay */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-20 lg:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                ></div>
+            )}
+
             {/* Sidebar */}
-            <aside className="fixed left-0 top-0 h-full w-72 bg-slate-900 text-white z-20 flex flex-col shadow-2xl">
-                <div className="p-6 border-b border-slate-800">
+            <aside className={`fixed inset-y-0 left-0 z-30 w-72 bg-slate-900 text-white flex flex-col shadow-2xl transition-transform duration-300 transform lg:translate-x-0 lg:static ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className="p-6 border-b border-slate-800 flex justify-between items-center">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-bold text-xl">K</div>
                         <span className="text-xl font-bold tracking-tight">Kalam Teacher</span>
                     </div>
+                    <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-slate-400">
+                        <X size={24} />
+                    </button>
                 </div>
 
                 <div className="p-4 flex-1 space-y-2 mt-4">
-                    <button onClick={() => setSelectedBatch(null)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${!selectedBatch ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}>
+                    <button onClick={() => { setSelectedBatch(null); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${!selectedBatch ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}>
                         <LayoutDashboard size={20} />
                         <span>My Batches</span>
                     </button>
@@ -165,13 +177,19 @@ const TeacherDashboard = () => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 ml-72">
-                <header className="bg-white h-20 border-b border-slate-200 sticky top-0 z-10 px-8 flex justify-between items-center shadow-sm">
-                    <h1 className="text-2xl font-bold text-slate-800">
-                        {selectedBatch ? <span className="flex items-center gap-2 text-slate-500">Batches <ChevronRight size={20} /> <span className="text-slate-900">{selectedBatch.name}</span></span> : 'Dashboard Overview'}
-                    </h1>
+            <main className="flex-1 w-full lg:w-auto transition-all">
+                <header className="bg-white h-20 border-b border-slate-200 sticky top-0 z-10 px-4 lg:px-8 flex justify-between items-center shadow-sm">
                     <div className="flex items-center gap-4">
-                        <div className="text-right">
+                        <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
+                            <Menu size={24} />
+                        </button>
+                        <h1 className="text-xl lg:text-2xl font-bold text-slate-800 truncate max-w-[200px] md:max-w-none">
+                            {selectedBatch ? <span className="flex items-center gap-2 text-slate-500">Batches <ChevronRight size={20} /> <span className="text-slate-900 truncate">{selectedBatch.name}</span></span> : 'Dashboard Overview'}
+                        </h1>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <div className="text-right hidden sm:block">
                             <div className="font-bold text-slate-900">{user?.name || 'Teacher'}</div>
                             <div className="text-xs text-slate-500">Faculty Member</div>
                         </div>
@@ -179,17 +197,17 @@ const TeacherDashboard = () => {
                     </div>
                 </header>
 
-                <div className="p-8 max-w-7xl mx-auto">
+                <div className="p-4 lg:p-8 max-w-7xl mx-auto">
 
                     {/* BATCH SELECTION SCREEN */}
                     {!selectedBatch && (
                         <>
-                            <div className="flex justify-between items-center mb-8">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                                 <div>
                                     <h2 className="text-3xl font-bold text-slate-900">My Classes</h2>
                                     <p className="text-slate-500">Select a batch to manage attendance and marks.</p>
                                 </div>
-                                <button onClick={() => setShowCreateBatch(true)} className="btn btn-primary flex items-center gap-2">
+                                <button onClick={() => setShowCreateBatch(true)} className="btn btn-primary flex items-center gap-2 w-full md:w-auto justify-center">
                                     <Plus size={20} /> Create New Batch
                                 </button>
                             </div>
@@ -197,11 +215,11 @@ const TeacherDashboard = () => {
                             {showCreateBatch && (
                                 <div className="mb-8 p-6 bg-white rounded-xl border border-slate-200 shadow-sm animate-fade-in-up max-w-2xl">
                                     <h3 className="font-bold text-lg mb-4 text-slate-800">Create New Batch</h3>
-                                    <form onSubmit={handleCreateBatch} className="grid grid-cols-2 gap-4">
+                                    <form onSubmit={handleCreateBatch} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <input required placeholder="Batch Name" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" value={newBatch.name} onChange={e => setNewBatch({ ...newBatch, name: e.target.value })} />
                                         <input required placeholder="Subject" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" value={newBatch.subject} onChange={e => setNewBatch({ ...newBatch, subject: e.target.value })} />
                                         <input required placeholder="Timing" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" value={newBatch.timing} onChange={e => setNewBatch({ ...newBatch, timing: e.target.value })} />
-                                        <div className="flex items-center justify-end gap-2 col-span-2 mt-2">
+                                        <div className="flex items-center justify-end gap-2 md:col-span-2 mt-2">
                                             <button type="button" onClick={() => setShowCreateBatch(false)} className="btn btn-outline py-2">Cancel</button>
                                             <button type="submit" className="btn btn-primary py-2">Create Batch</button>
                                         </div>
@@ -239,17 +257,19 @@ const TeacherDashboard = () => {
                                             <span className="bg-slate-200 text-slate-600 text-xs py-1 px-2 rounded-full">{students.length}</span>
                                         </h2>
                                         <button onClick={() => setShowAddStudent(true)} className="btn btn-outline py-1.5 px-3 text-sm flex items-center gap-2 bg-white">
-                                            <Plus size={16} /> Add Student
+                                            <Plus size={16} /> <span className="hidden sm:inline">Add Student</span>
                                         </button>
                                     </div>
 
                                     {showAddStudent && (
                                         <div className="p-6 bg-blue-50/50 border-b border-blue-100 animate-fade-in">
-                                            <form onSubmit={handleAddStudent} className="flex gap-3">
+                                            <form onSubmit={handleAddStudent} className="flex flex-col md:flex-row gap-3">
                                                 <input required placeholder="Student Name" className="flex-1 p-2 rounded border border-slate-300" value={newStudent.name} onChange={e => setNewStudent({ ...newStudent, name: e.target.value })} />
-                                                <input required placeholder="Phone" className="w-32 p-2 rounded border border-slate-300" value={newStudent.phone} onChange={e => setNewStudent({ ...newStudent, phone: e.target.value })} />
-                                                <button type="submit" className="btn btn-primary py-2 px-4 shadow-none">Add</button>
-                                                <button type="button" onClick={() => setShowAddStudent(false)} className="px-3 text-slate-400 hover:text-red-500"><XCircle /></button>
+                                                <input required placeholder="Phone" className="w-full md:w-32 p-2 rounded border border-slate-300" value={newStudent.phone} onChange={e => setNewStudent({ ...newStudent, phone: e.target.value })} />
+                                                <div className="flex gap-2">
+                                                    <button type="submit" className="flex-1 btn btn-primary py-2 px-4 shadow-none">Add</button>
+                                                    <button type="button" onClick={() => setShowAddStudent(false)} className="px-3 text-slate-400 hover:text-red-500"><XCircle /></button>
+                                                </div>
                                             </form>
                                         </div>
                                     )}
@@ -316,7 +336,7 @@ const TeacherDashboard = () => {
                         </div>
 
                         <div className="p-6 overflow-y-auto">
-                            <div className="grid grid-cols-3 gap-4 mb-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                                 <input placeholder="Exam Name" className="p-3 border rounded-lg" value={examData.exam_name} onChange={e => setExamData({ ...examData, exam_name: e.target.value })} />
                                 <input placeholder="Subject" className="p-3 border rounded-lg" value={examData.subject} onChange={e => setExamData({ ...examData, subject: e.target.value })} />
                                 <input placeholder="Total Marks" type="number" className="p-3 border rounded-lg" value={examData.total_marks} onChange={e => setExamData({ ...examData, total_marks: e.target.value })} />
