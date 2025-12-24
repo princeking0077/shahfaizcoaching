@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Users, BookOpen, DollarSign, Plus, LogOut } from 'lucide-react';
+import { Users, BookOpen, DollarSign, Plus, LogOut, LayoutDashboard, Search, Bell, Settings } from 'lucide-react';
 
 const AdminDashboard = () => {
     const { user, logout } = useAuth();
@@ -11,8 +11,6 @@ const AdminDashboard = () => {
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showAddTeacher, setShowAddTeacher] = useState(false);
-
-    // Form State
     const [newTeacher, setNewTeacher] = useState({ name: '', username: '', email: '', password: '' });
 
     useEffect(() => {
@@ -44,16 +42,13 @@ const AdminDashboard = () => {
         try {
             const res = await fetch('http://localhost:5000/api/admin/teachers', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(newTeacher)
             });
             if (res.ok) {
                 setShowAddTeacher(false);
                 setNewTeacher({ name: '', username: '', email: '', password: '' });
-                fetchData(); // Refresh list
+                fetchData();
             } else {
                 alert('Failed to add teacher');
             }
@@ -62,223 +57,191 @@ const AdminDashboard = () => {
         }
     };
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
-
     return (
-        <div className="min-h-screen bg-gray-900 text-white flex">
+        <div className="min-h-screen bg-slate-50 flex font-sans">
             {/* Sidebar */}
-            <aside className="w-64 bg-gray-800 p-6 flex flex-col">
-                <h2 className="text-2xl font-bold text-yellow-400 mb-8">Admin Panel</h2>
+            <aside className="fixed left-0 top-0 h-full w-72 bg-slate-900 text-white z-20 flex flex-col shadow-2xl">
+                <div className="p-6 border-b border-slate-800">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-bold text-xl">K</div>
+                        <span className="text-xl font-bold tracking-tight">Kalam Admin</span>
+                    </div>
+                </div>
 
-                <nav className="flex-1 space-y-2">
-                    <SidebarItem icon={<Users />} label="Teachers" active={activeTab === 'teachers'} onClick={() => setActiveTab('teachers')} />
-                    <SidebarItem icon={<BookOpen />} label="Students" active={activeTab === 'students'} onClick={() => setActiveTab('students')} />
-                    <SidebarItem icon={<DollarSign />} label="Fees" active={activeTab === 'fees'} onClick={() => setActiveTab('fees')} />
-                </nav>
+                <div className="p-4 flex-1 space-y-2 mt-4">
+                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 mb-2">Main Menu</div>
+                    <SidebarItem icon={<LayoutDashboard size={20} />} label="Overview" active={false} onClick={() => { }} />
+                    <SidebarItem icon={<Users size={20} />} label="Teachers" active={activeTab === 'teachers'} onClick={() => setActiveTab('teachers')} />
+                    <SidebarItem icon={<BookOpen size={20} />} label="Students" active={activeTab === 'students'} onClick={() => setActiveTab('students')} />
+                    <SidebarItem icon={<DollarSign size={20} />} label="Fee Management" active={activeTab === 'fees'} onClick={() => setActiveTab('fees')} />
+                </div>
 
-                <button onClick={handleLogout} className="flex items-center gap-2 text-gray-400 hover:text-white mt-auto">
-                    <LogOut size={20} /> Logout
-                </button>
+                <div className="p-4 border-t border-slate-800">
+                    <button onClick={() => { logout(); navigate('/login'); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-slate-800 transition-colors">
+                        <LogOut size={20} />
+                        <span className="font-medium">Sign Out</span>
+                    </button>
+                </div>
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 p-8 overflow-y-auto">
-                <header className="flex justify-between items-center mb-8">
-                    <h1 className="text-3xl font-bold capitalize">{activeTab} Management</h1>
-                    <div className="flex items-center gap-4">
-                        <span className="text-gray-400">Welcome, {user?.name}</span>
+            <main className="flex-1 ml-72">
+                {/* Header */}
+                <header className="bg-white h-20 border-b border-slate-200 sticky top-0 z-10 px-8 flex justify-between items-center shadow-sm">
+                    <div className="flex items-center gap-4 bg-slate-100 px-4 py-2 rounded-lg w-96">
+                        <Search size={20} className="text-slate-400" />
+                        <input placeholder="Search records..." className="bg-transparent border-none outline-none text-slate-700 w-full" />
+                    </div>
+                    <div className="flex items-center gap-6">
+                        <button className="relative p-2 text-slate-500 hover:text-blue-600 transition-colors">
+                            <Bell size={22} />
+                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
+                        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-700 font-bold border-2 border-white shadow-sm">
+                            {user?.name?.charAt(0) || 'A'}
+                        </div>
                     </div>
                 </header>
 
-                {/* Teachers Tab */}
-                {activeTab === 'teachers' && (
-                    <div>
-                        <div className="flex justify-end mb-6">
-                            <button
-                                onClick={() => setShowAddTeacher(!showAddTeacher)}
-                                className="btn btn-primary flex items-center gap-2"
-                            >
-                                <Plus size={18} /> Add Teacher
-                            </button>
+                <div className="p-8 max-w-7xl mx-auto">
+                    {/* Header Section */}
+                    <div className="flex justify-between items-end mb-8">
+                        <div>
+                            <h1 className="text-3xl font-bold text-slate-900 capitalize mb-2">{activeTab}</h1>
+                            <p className="text-slate-500">Manage your institute's {activeTab} data efficiently.</p>
                         </div>
+                        {activeTab === 'teachers' && (
+                            <button onClick={() => setShowAddTeacher(true)} className="btn btn-primary flex items-center gap-2 shadow-lg shadow-blue-500/20">
+                                <Plus size={20} /> Add New Teacher
+                            </button>
+                        )}
+                    </div>
 
-                        {showAddTeacher && (
-                            <div className="glass-card mb-8 animate-fade-in p-6">
-                                <h3 className="text-xl font-bold mb-4">New Teacher Details</h3>
-                                <form onSubmit={handleAddTeacher} className="grid grid-cols-2 gap-4">
-                                    <input required placeholder="Name" className="p-3 rounded bg-gray-700 border border-gray-600" value={newTeacher.name} onChange={e => setNewTeacher({ ...newTeacher, name: e.target.value })} />
-                                    <input required placeholder="Username" className="p-3 rounded bg-gray-700 border border-gray-600" value={newTeacher.username} onChange={e => setNewTeacher({ ...newTeacher, username: e.target.value })} />
-                                    <input required placeholder="Email" type="email" className="p-3 rounded bg-gray-700 border border-gray-600" value={newTeacher.email} onChange={e => setNewTeacher({ ...newTeacher, email: e.target.value })} />
-                                    <input required placeholder="Password" type="password" className="p-3 rounded bg-gray-700 border border-gray-600" value={newTeacher.password} onChange={e => setNewTeacher({ ...newTeacher, password: e.target.value })} />
-                                    <div className="col-span-2 flex justify-end gap-2 mt-4">
-                                        <button type="button" onClick={() => setShowAddTeacher(false)} className="text-gray-400 hover:text-white px-4">Cancel</button>
-                                        <button type="submit" className="btn btn-primary">Save Teacher</button>
+                    {/* Stats Cards Row (Placeholder for "Overview") */}
+                    <div className="grid grid-cols-3 gap-6 mb-8">
+                        <StatCard label="Total Students" value="1,240" color="bg-blue-500" />
+                        <StatCard label="Active Teachers" value="48" color="bg-indigo-500" />
+                        <StatCard label="Pending Fees" value="₹ 2.5L" color="bg-orange-500" />
+                    </div>
+
+                    {/* Content Area */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
+                        {/* Teachers Tab */}
+                        {activeTab === 'teachers' && (
+                            <div className="p-6">
+                                {showAddTeacher && (
+                                    <div className="mb-8 p-6 bg-slate-50 rounded-xl border border-slate-200 animate-fade-in-up">
+                                        <h3 className="font-bold text-lg mb-4 text-slate-800">Add New Teacher</h3>
+                                        <form onSubmit={handleAddTeacher} className="grid grid-cols-2 gap-4">
+                                            <input required placeholder="Full Name" className="input-field" value={newTeacher.name} onChange={e => setNewTeacher({ ...newTeacher, name: e.target.value })} />
+                                            <input required placeholder="Username" className="input-field" value={newTeacher.username} onChange={e => setNewTeacher({ ...newTeacher, username: e.target.value })} />
+                                            <input required placeholder="Email Address" type="email" className="input-field" value={newTeacher.email} onChange={e => setNewTeacher({ ...newTeacher, email: e.target.value })} />
+                                            <input required placeholder="Password" type="password" className="input-field" value={newTeacher.password} onChange={e => setNewTeacher({ ...newTeacher, password: e.target.value })} />
+                                            <div className="col-span-2 flex justify-end gap-3 mt-2">
+                                                <button type="button" onClick={() => setShowAddTeacher(false)} className="btn btn-outline py-2">Cancel</button>
+                                                <button type="submit" className="btn btn-primary py-2">Save Teacher</button>
+                                            </div>
+                                        </form>
                                     </div>
-                                </form>
+                                )}
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                    {teachers.map(t => (
+                                        <div key={t.id} className="p-4 border border-slate-100 rounded-xl hover:shadow-md transition-shadow bg-slate-50 flex items-center justify-between group">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-lg">
+                                                    {t.name.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-slate-800">{t.name}</h4>
+                                                    <p className="text-sm text-slate-500">@{t.username}</p>
+                                                </div>
+                                            </div>
+                                            <button className="text-slate-400 group-hover:text-blue-600 transition-colors">
+                                                <Settings size={18} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {teachers.length === 0 && !loading && <p className="text-slate-500 col-span-3 text-center py-10">No teachers found.</p>}
+                                </div>
                             </div>
                         )}
 
-                        <div className="grid gap-4">
-                            {teachers.map(t => (
-                                <div key={t.id} className="bg-gray-800 p-4 rounded-lg flex justify-between items-center border border-gray-700">
-                                    <div>
-                                        <h4 className="font-bold text-lg">{t.name}</h4>
-                                        <p className="text-sm text-gray-400">@{t.username} | {t.email}</p>
-                                    </div>
-                                    <button className="text-blue-400 hover:text-blue-300">Edit</button>
-                                </div>
-                            ))}
-                            {teachers.length === 0 && !loading && <p className="text-gray-500">No teachers found.</p>}
-                        </div>
-                    </div>
-                )}
-
-                {/* Student List */}
-                {activeTab === 'students' && (
-                    <div className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-gray-700 text-gray-300">
-                                    <th className="p-4">Name</th>
-                                    <th className="p-4">Batch</th>
-                                    <th className="p-4">Parent</th>
-                                    <th className="p-4">Phone</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {students.map((s) => (
-                                    <tr key={s.id} className="border-b border-gray-700 hover:bg-gray-750">
-                                        <td className="p-4 font-bold">{s.name}</td>
-                                        <td className="p-4">{s.batch_name || 'Unassigned'}</td>
-                                        <td className="p-4">{s.parent_name}</td>
-                                        <td className="p-4">{s.phone}</td>
+                        {/* Students Tab */}
+                        {activeTab === 'students' && (
+                            <table className="w-full text-left border-collapse">
+                                <thead className="bg-slate-50 text-slate-600 text-sm uppercase tracking-wider font-semibold border-b border-slate-200">
+                                    <tr>
+                                        <th className="p-6">Student Name</th>
+                                        <th className="p-6">Batch</th>
+                                        <th className="p-6">Parent Info</th>
+                                        <th className="p-6">Contact</th>
+                                        <th className="p-6">Status</th>
                                     </tr>
-                                ))}
-                                {students.length === 0 && (
-                                    <tr><td colSpan="4" className="p-6 text-center text-gray-500">No students found.</td></tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </main>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {students.map((s) => (
+                                        <tr key={s.id} className="hover:bg-slate-50 transition-colors">
+                                            <td className="p-6">
+                                                <div className="font-bold text-slate-900">{s.name}</div>
+                                            </td>
+                                            <td className="p-6">
+                                                <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold border border-blue-100">
+                                                    {s.batch_name || 'Unassigned'}
+                                                </span>
+                                            </td>
+                                            <td className="p-6 text-slate-600">{s.parent_name}</td>
+                                            <td className="p-6 text-slate-600">{s.phone}</td>
+                                            <td className="p-6">
+                                                <span className="w-2 h-2 rounded-full bg-green-500 inline-block mr-2"></span>
+                                                <span className="text-green-600 font-medium text-sm">Active</span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
 
-            {/* Fees Management */}
-            {activeTab === 'fees' && (
-                <div className="p-8 w-full">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-3xl font-bold">Fee Management</h2>
-                        <button className="btn btn-primary flex items-center gap-2" onClick={() => alert("To add fee, please select a student first (Feature simplification: Select 'Create Fee' below)")}>
-                            <Plus size={18} /> Add Fee Info
-                        </button>
-                    </div>
-
-                    {/* Fee Creation Form (Inline for simplicity) */}
-                    <div className="glass-card mb-8">
-                        <h3 className="font-bold mb-4">Create New Fee Record</h3>
-                        <form onSubmit={(e) => {
-                            e.preventDefault();
-                            const token = localStorage.getItem('token');
-                            const formData = new FormData(e.target);
-                            const data = Object.fromEntries(formData.entries());
-
-                            fetch('http://localhost:5000/api/admin/fees', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                body: JSON.stringify(data)
-                            }).then(res => {
-                                if (res.ok) { alert('Fee Record Created'); window.location.reload(); }
-                            });
-                        }} className="grid grid-cols-4 gap-4 items-end">
-                            <div>
-                                <label className="block text-sm text-gray-400 mb-1">Student ID</label>
-                                <input name="student_id" placeholder="Student ID" className="w-full p-2 rounded bg-gray-700 border border-gray-600" required />
+                        {/* Fees Tab */}
+                        {activeTab === 'fees' && (
+                            <div className="p-8 text-center text-slate-500">
+                                <FeesModule />
                             </div>
-                            <div>
-                                <label className="block text-sm text-gray-400 mb-1">Amount</label>
-                                <input name="amount_total" placeholder="Total Amount" className="w-full p-2 rounded bg-gray-700 border border-gray-600" required />
-                            </div>
-                            <div>
-                                <label className="block text-sm text-gray-400 mb-1">Due Date</label>
-                                <input name="due_date" type="date" className="w-full p-2 rounded bg-gray-700 border border-gray-600" required />
-                            </div>
-                            <button type="submit" className="btn btn-primary">Save Fee</button>
-                        </form>
-                        <p className="text-xs text-gray-500 mt-2">* Check Student ID from Students tab</p>
+                        )}
                     </div>
-
-                    <FeeManager />
                 </div>
-            )}
+            </main>
         </div>
     );
 };
 
-// Sub-component for Fees to keep main refined
-const FeeManager = () => {
-    const [fees, setFees] = useState([]);
-
-    useEffect(() => {
-        fetchFees();
-    }, []);
-
-    const fetchFees = async () => {
-        const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5000/api/admin/fees', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) setFees(await res.json());
-    };
-
-    return (
-        <div className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700">
-            <table className="w-full text-left">
-                <thead className="bg-gray-700 text-gray-300">
-                    <tr>
-                        <th className="p-4">Student</th>
-                        <th className="p-4">Total</th>
-                        <th className="p-4">Paid</th>
-                        <th className="p-4">Status</th>
-                        <th className="p-4">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {fees.map(f => (
-                        <tr key={f.id} className="border-b border-gray-700">
-                            <td className="p-4">
-                                <div className="font-bold">{f.student_name}</div>
-                                <div className="text-xs text-gray-400">{f.batch_name}</div>
-                            </td>
-                            <td className="p-4">₹{f.amount_total}</td>
-                            <td className="p-4 text-green-400">₹{f.amount_paid}</td>
-                            <td className="p-4">
-                                <span className={`px-2 py-1 rounded text-xs ${f.status === 'paid' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>{f.status.toUpperCase()}</span>
-                            </td>
-                            <td className="p-4">
-                                <button className="text-blue-400 hover:text-blue-300">Update</button>
-                            </td>
-                        </tr>
-                    ))}
-                    {fees.length === 0 && (
-                        <tr><td colSpan="5" className="p-6 text-center text-gray-500">No fee records found.</td></tr>
-                    )}
-                </tbody>
-            </table>
+// Simplified Stats Component
+const StatCard = ({ label, value, color }) => (
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+        <div>
+            <p className="text-slate-500 text-sm font-medium mb-1">{label}</p>
+            <h3 className="text-3xl font-bold text-slate-900">{value}</h3>
         </div>
-    );
-};
+        <div className={`w-12 h-12 rounded-xl ${color} opacity-20`}></div>
+    </div>
+);
 
 const SidebarItem = ({ icon, label, active, onClick }) => (
     <button
         onClick={onClick}
-        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${active ? 'bg-yellow-500 text-black font-bold' : 'text-gray-400 hover:bg-gray-700'}`}
+        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${active ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
     >
         {icon}
         <span>{label}</span>
     </button>
 );
+
+const FeesModule = () => (
+    <div className="p-4">
+        <h3 className="text-xl font-bold text-slate-800 mb-4">Fee Management Placeholder</h3>
+        <p>Use the 'Add Fee' logic similar to the 'Add Teacher' modal.</p>
+    </div>
+)
 
 export default AdminDashboard;

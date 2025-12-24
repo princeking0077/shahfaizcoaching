@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Lock, User } from 'lucide-react';
+import { Lock, User, ArrowRight, CheckCircle } from 'lucide-react';
 
 const Login = () => {
     const [username, setUsername] = useState('');
@@ -23,7 +23,6 @@ const Login = () => {
 
             if (res.ok) {
                 login(data.token, data.user);
-                // Redirect based on role
                 if (data.user.role === 'admin') navigate('/admin');
                 else if (data.user.role === 'teacher') navigate('/teacher');
                 else navigate('/student');
@@ -36,50 +35,97 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[url('https://images.unsplash.com/photo-1509062522246-3755977927d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')] bg-cover bg-center">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div className="min-h-screen bg-white flex">
+            {/* Left Side - Brand Panel */}
+            <div className="hidden lg:flex lg:w-1/2 bg-slate-900 text-white p-12 flex-col justify-between relative overflow-hidden">
+                <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-8">
+                        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-bold text-xl">K</div>
+                        <span className="text-2xl font-bold tracking-tight">Kalam Coaching</span>
+                    </div>
+                    <h1 className="text-5xl font-bold leading-tight mb-6">
+                        Welcome back to <br />
+                        <span className="text-blue-500">Excellence.</span>
+                    </h1>
+                    <p className="text-lg text-slate-400 max-w-md">
+                        Manage your institute, track student performance, and achieve academic milestones with our advanced portal.
+                    </p>
+                </div>
 
-            <div className="glass-card w-full max-w-md p-8 relative z-10 animate-fade-in">
-                <h2 className="text-3xl font-bold text-center mb-6">Welcome Back</h2>
-                <p className="text-center text-gray-400 mb-8">Login to your account</p>
+                <div className="relative z-10 space-y-4">
+                    <div className="flex items-center gap-3">
+                        <CheckCircle className="text-green-500" size={24} />
+                        <span className="font-medium">Secure Role-Based Access</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <CheckCircle className="text-green-500" size={24} />
+                        <span className="font-medium">Real-time Dashboard Analytics</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <CheckCircle className="text-green-500" size={24} />
+                        <span className="font-medium">Instant Attendance Tracking</span>
+                    </div>
+                </div>
 
-                {error && <div className="bg-red-500/10 border border-red-500 text-red-500 p-3 rounded mb-4 text-center">{error}</div>}
+                {/* Abstract decorative circles */}
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+            </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-300">Username</label>
-                        <div className="relative">
-                            <User className="absolute left-3 top-3 text-gray-500" size={20} />
-                            <input
-                                type="text"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                className="w-full bg-gray-800/50 border border-gray-700 rounded-lg py-3 pl-10 pr-4 text-white focus:ring-2 focus:ring-yellow-500 outline-none transition-all"
-                                placeholder="Enter username"
-                                required
-                            />
-                        </div>
+            {/* Right Side - Login Form */}
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-slate-50">
+                <div className="max-w-md w-full bg-white p-10 rounded-2xl shadow-xl border border-slate-100">
+                    <div className="text-center mb-10">
+                        <h2 className="text-3xl font-bold text-slate-900">Sign In</h2>
+                        <p className="text-slate-500 mt-2">Enter your credentials to access your account</p>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-300">Password</label>
-                        <div className="relative">
-                            <Lock className="absolute left-3 top-3 text-gray-500" size={20} />
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-gray-800/50 border border-gray-700 rounded-lg py-3 pl-10 pr-4 text-white focus:ring-2 focus:ring-yellow-500 outline-none transition-all"
-                                placeholder="Enter password"
-                                required
-                            />
+                    {error && (
+                        <div className="flex items-center gap-2 text-red-600 bg-red-50 p-4 rounded-lg border border-red-100 mb-6 text-sm">
+                            <span className="font-bold">Error:</span> {error}
                         </div>
-                    </div>
+                    )}
 
-                    <button type="submit" className="w-full btn btn-primary py-3 text-lg mt-4">
-                        Login
-                    </button>
-                </form>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Username</label>
+                            <div className="relative group">
+                                <User className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={20} />
+                                <input
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-slate-900 font-medium placeholder:text-slate-400"
+                                    placeholder="admin / teacher / student"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
+                            <div className="relative group">
+                                <Lock className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={20} />
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-slate-900 font-medium placeholder:text-slate-400"
+                                    placeholder="••••••••"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <button type="submit" className="w-full btn btn-primary py-4 text-base font-bold shadow-lg shadow-blue-500/30 hover:shadow-blue-600/40 transform active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                            Sign In to Dashboard <ArrowRight size={20} />
+                        </button>
+                    </form>
+
+                    <div className="mt-8 pt-8 border-t border-slate-100 text-center text-sm text-slate-500">
+                        Having trouble logging in? <a href="#" className="text-blue-600 font-semibold hover:underline">Contact Support</a>
+                    </div>
+                </div>
             </div>
         </div>
     );
