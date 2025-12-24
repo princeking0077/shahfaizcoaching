@@ -17,40 +17,39 @@ const verifyStudent = (req, res, next) => {
 
 router.use(verifyStudent);
 
-router.get('/profile', (req, res) => {
-    const student = db.prepare(`
-    SELECT s.*, u.name, u.email, b.name as batch_name 
-    FROM students s 
-    JOIN users u ON s.user_id = u.id 
-    LEFT JOIN batches b ON s.batch_id = b.id
-    WHERE s.user_id = ?
-  `).get(req.user.id); // user_id in token is from users table. student table has user_id FK.
+router.get('/profile', async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT s.*, u.name, u.email, b.name as batch_name 
+            FROM students s 
+            JOIN users u ON s.user_id = u.id 
+            LEFT JOIN batches b ON s.batch_id = b.id
+            WHERE s.user_id = ?
+        `, [req.user.id]);
 
-    // Wait, req.user.id is from users table. 
-    // We need to find student record where user_id = req.user.id
-    // The query above does that.
-
-    // Actually, wait. req.user.id is the ID from users table.
-    // The query `WHERE s.user_id = ?` is correct.
-
-    if (student) res.json(student);
-    else res.status(404).json({ error: 'Student profile not found' });
+        if (rows.length > 0) res.json(rows[0]);
+        else res.status(404).json({ error: 'Student profile not found' });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.get('/attendance', (req, res) => {
-    const student = db.prepare('SELECT id FROM students WHERE user_id = ?').get(req.user.id);
-    if (!student) return res.status(404).json({ error: 'Student not found' });
+router.get('/attendance', async (req, res) => {
+    try {
+        const [studentRows] = await db.query('SELECT id FROM students WHERE user_id = ?', [req.user.id]);
+        if (studentRows.length === 0) return res.status(404).json({ error: 'Student not found' });
 
-    const attendance = db.prepare('SELECT * FROM attendance WHERE student_id = ? ORDER BY date DESC').all(student.id);
-    res.json(attendance);
+        const [attendance] = await db.query('SELECT * FROM attendance WHERE student_id = ? ORDER BY date DESC', [studentRows[0].id]);
+        res.json(attendance);
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.get('/fees', (req, res) => {
-    const student = db.prepare('SELECT id FROM students WHERE user_id = ?').get(req.user.id);
-    if (!student) return res.status(404).json({ error: 'Student not found' });
+router.get('/fees', async (req, res) => {
+    try {
+        const [studentRows] = await db.query('SELECT id FROM students WHERE user_id = ?', [req.user.id]);
+        if (studentRows.length === 0) return res.status(404).json({ error: 'Student not found' });
 
-    const fees = db.prepare('SELECT * FROM fees WHERE student_id = ?').all(student.id);
-    res.json(fees);
+        const [fees] = await db.query('SELECT * FROM fees WHERE student_id = ?', [studentRows[0].id]);
+        res.json(fees);
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 module.exports = router;

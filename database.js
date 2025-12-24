@@ -1,89 +1,131 @@
-const Database = require('better-sqlite3');
+const mysql = require('mysql2');
 const path = require('path');
 const bcrypt = require('bcryptjs');
+require('dotenv').config();
 
-const db = new Database(path.join(__dirname, 'kalam.db'), { verbose: console.log });
+// Create connection pool
+const pool = mysql.createPool({
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'kalam',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
 
-// Initialize Database
-function initDb() {
-  const schema = `
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      role TEXT CHECK(role IN ('admin', 'teacher', 'student')) NOT NULL,
-      name TEXT NOT NULL,
-      email TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+const promisePool = pool.promise();
 
-    CREATE TABLE IF NOT EXISTS batches (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      timing TEXT NOT NULL,
-      subject TEXT, -- Added subject column
-      teacher_id INTEGER NOT NULL,
-      FOREIGN KEY (teacher_id) REFERENCES users(id)
-    );
+// Helper for 'prepare().run()' style from SQLite, adapted for MySQL
+// This allows us to keep some semantic similarity, although we will need to refactor routes.
+// Actually, we'll export the promisePool for direct usage in routes.
 
-    CREATE TABLE IF NOT EXISTS students (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      batch_id INTEGER,
-      parent_name TEXT,
-      phone TEXT,
-      FOREIGN KEY (user_id) REFERENCES users(id),
-      FOREIGN KEY (batch_id) REFERENCES batches(id)
-    );
+async function initDb() {
+  try {
+    const connection = await promisePool.getConnection();
 
-    CREATE TABLE IF NOT EXISTS attendance (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      student_id INTEGER NOT NULL,
-      batch_id INTEGER NOT NULL,
-      date TEXT NOT NULL, 
-      status TEXT CHECK(status IN ('present', 'absent')) NOT NULL,
-      FOREIGN KEY (student_id) REFERENCES students(id),
-      FOREIGN KEY (batch_id) REFERENCES batches(id)
-    );
+    // Users Table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        role ENUM('admin', 'teacher', 'student') NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
 
-    CREATE TABLE IF NOT EXISTS marks (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      student_id INTEGER NOT NULL,
-      batch_id INTEGER NOT NULL,
-      exam_name TEXT NOT NULL,
-      subject TEXT NOT NULL,
-      marks_obtained REAL NOT NULL,
-      total_marks REAL NOT NULL,
-      FOREIGN KEY (student_id) REFERENCES students(id),
-      FOREIGN KEY (batch_id) REFERENCES batches(id)
-    );
+    // Batches Table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS batches (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        timing VARCHAR(255) NOT NULL,
+        subject VARCHAR(255),
+        teacher_id INT NOT NULL,
+        FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
 
-    CREATE TABLE IF NOT EXISTS fees (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      student_id INTEGER NOT NULL,
-      amount_total REAL NOT NULL,
-      amount_paid REAL DEFAULT 0,
-      status TEXT CHECK(status IN ('paid', 'pending', 'partial')) DEFAULT 'pending',
-      due_date TEXT,
-      FOREIGN KEY (student_id) REFERENCES students(id)
-    );
-  `;
-  db.exec(schema);
-  console.log('Database initialized.');
+    // Students Table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS students (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        batch_id INT,
+        parent_name VARCHAR(255),
+        phone VARCHAR(20),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE SET NULL
+      )
+    `);
+
+    // Attendance Table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS attendance (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        student_id INT NOT NULL,
+        batch_id INT NOT NULL,
+        date DATE NOT NULL, 
+        status ENUM('present', 'absent') NOT NULL,
+        FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+        FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Marks Table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS marks (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        student_id INT NOT NULL,
+        batch_id INT NOT NULL,
+        exam_name VARCHAR(255) NOT NULL,
+        subject VARCHAR(255) NOT NULL,
+        marks_obtained DECIMAL(5,2) NOT NULL,
+        total_marks DECIMAL(5,2) NOT NULL,
+        FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+        FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Fees Table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS fees (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        student_id INT NOT NULL,
+        amount_total DECIMAL(10,2) NOT NULL,
+        amount_paid DECIMAL(10,2) DEFAULT 0,
+        status ENUM('paid', 'pending', 'partial') DEFAULT 'pending',
+        due_date DATE,
+        FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+      )
+    `);
+
+    console.log('✅ MySQL Database initialized tables.');
+    connection.release();
+
+    seedAdmin();
+  } catch (err) {
+    console.error('❌ Database Initialization Error:', err);
+  }
 }
 
-// Seed Admin Helper
-function seedAdmin() {
-  const adminCheck = db.prepare('SELECT * FROM users WHERE role = ?').get('admin');
-  if (!adminCheck) {
-    const hash = bcrypt.hashSync('admin123', 10);
-    const stmt = db.prepare('INSERT INTO users (username, password, role, name) VALUES (?, ?, ?, ?)');
-    stmt.run('admin', hash, 'admin', 'Super Admin');
-    console.log('Admin seeded: admin / admin123');
+async function seedAdmin() {
+  try {
+    const [rows] = await promisePool.query('SELECT * FROM users WHERE role = ?', ['admin']);
+    if (rows.length === 0) {
+      const hash = bcrypt.hashSync('admin123', 10);
+      await promisePool.query('INSERT INTO users (username, password, role, name) VALUES (?, ?, ?, ?)',
+        ['admin', hash, 'admin', 'Super Admin']);
+      console.log('✅ Admin seeded: admin / admin123');
+    }
+  } catch (e) {
+    console.error('❌ Seeding Error:', e);
   }
 }
 
 initDb();
-seedAdmin();
 
-module.exports = db;
+module.exports = promisePool;

@@ -18,79 +18,95 @@ const verifyTeacher = (req, res, next) => {
 router.use(verifyTeacher);
 
 // Batches
-router.get('/batches', (req, res) => {
-    const batches = db.prepare('SELECT * FROM batches WHERE teacher_id = ?').all(req.user.id);
-    res.json(batches);
+router.get('/batches', async (req, res) => {
+    try {
+        const [batches] = await db.query('SELECT * FROM batches WHERE teacher_id = ?', [req.user.id]);
+        res.json(batches);
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/batches', (req, res) => {
+router.post('/batches', async (req, res) => {
     const { name, timing, subject } = req.body;
-    const result = db.prepare('INSERT INTO batches (name, timing, subject, teacher_id) VALUES (?, ?, ?, ?)')
-        .run(name, timing, subject, req.user.id);
-    res.json({ id: result.lastInsertRowid, success: true });
+    try {
+        const [result] = await db.query('INSERT INTO batches (name, timing, subject, teacher_id) VALUES (?, ?, ?, ?)',
+            [name, timing, subject, req.user.id]);
+        res.json({ id: result.insertId, success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // Students
-router.get('/batches/:batchId/students', (req, res) => {
-    const students = db.prepare('SELECT s.*, u.name, u.email FROM students s JOIN users u ON s.user_id = u.id WHERE s.batch_id = ?').all(req.params.batchId);
-    res.json(students);
+router.get('/batches/:batchId/students', async (req, res) => {
+    try {
+        const [students] = await db.query('SELECT s.*, u.name, u.email FROM students s JOIN users u ON s.user_id = u.id WHERE s.batch_id = ?', [req.params.batchId]);
+        res.json(students);
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Add Student (Creates user student account + entry in students table)
-router.post('/batches/:batchId/students', (req, res) => {
+// Add Student
+router.post('/batches/:batchId/students', async (req, res) => {
     const { name, parent_name, phone } = req.body;
     const batchId = req.params.batchId;
     const username = name.toLowerCase().replace(/\s/g, '') + Math.floor(Math.random() * 1000);
-    const password = 'password'; // Default password
+    const password = 'password';
 
+    const connection = await db.getConnection();
     try {
-        const createUser = db.prepare('INSERT INTO users (username, password, role, name) VALUES (?, ?, ?, ?)').run(username, '$2a$10$X.x.x', 'student', name); // TODO hash pwd
-        // Using a simple hash for 'password' to speed up dev or install bcrypt
+        await connection.beginTransaction();
+
         const hash = require('bcryptjs').hashSync(password, 10);
-        db.prepare('UPDATE users SET password = ? WHERE id = ?').run(hash, createUser.lastInsertRowid);
+        const [userRes] = await connection.query('INSERT INTO users (username, password, role, name) VALUES (?, ?, ?, ?)',
+            [username, hash, 'student', name]);
 
-        db.prepare('INSERT INTO students (user_id, batch_id, parent_name, phone) VALUES (?, ?, ?, ?)')
-            .run(createUser.lastInsertRowid, batchId, parent_name, phone);
+        await connection.query('INSERT INTO students (user_id, batch_id, parent_name, phone) VALUES (?, ?, ?, ?)',
+            [userRes.insertId, batchId, parent_name, phone]);
 
+        await connection.commit();
         res.json({ success: true, username, password });
     } catch (e) {
+        await connection.rollback();
         res.status(500).json({ error: e.message });
+    } finally {
+        connection.release();
     }
 });
 
 // Attendance
-router.post('/attendance', (req, res) => {
+router.post('/attendance', async (req, res) => {
     const { batchId, date, students } = req.body; // students: [{id, status}]
+    const connection = await db.getConnection();
     try {
-        // Basic implementation: Bulk insert or loop
-        const stmt = db.prepare('INSERT INTO attendance (student_id, batch_id, date, status) VALUES (?, ?, ?, ?)');
-        const insertMany = db.transaction((attendanceList) => {
-            for (const record of attendanceList) {
-                stmt.run(record.id, batchId, date, record.status); // record.id is student.id (from students table)
-            }
-        });
-        insertMany(students);
+        await connection.beginTransaction();
+        for (const record of students) {
+            await connection.query('INSERT INTO attendance (student_id, batch_id, date, status) VALUES (?, ?, ?, ?)',
+                [record.id, batchId, date, record.status]);
+        }
+        await connection.commit();
         res.json({ success: true });
     } catch (e) {
+        await connection.rollback();
         res.status(500).json({ error: e.message });
+    } finally {
+        connection.release();
     }
 });
 
 // Marks
-router.post('/marks', (req, res) => {
-    const { batchId, exam_name, subject, marksList } = req.body; // marksList: [{student_id, marks_obtained, total_marks}]
-
+router.post('/marks', async (req, res) => {
+    const { batchId, exam_name, subject, marksList } = req.body;
+    const connection = await db.getConnection();
     try {
-        const stmt = db.prepare('INSERT INTO marks (student_id, batch_id, exam_name, subject, marks_obtained, total_marks) VALUES (?, ?, ?, ?, ?, ?)');
-        const insertMany = db.transaction((list) => {
-            for (const m of list) {
-                stmt.run(m.student_id, batchId, exam_name, subject, m.marks_obtained, m.total_marks);
-            }
-        });
-        insertMany(marksList);
+        await connection.beginTransaction();
+        for (const m of marksList) {
+            await connection.query('INSERT INTO marks (student_id, batch_id, exam_name, subject, marks_obtained, total_marks) VALUES (?, ?, ?, ?, ?, ?)',
+                [m.student_id, batchId, exam_name, subject, m.marks_obtained, m.total_marks]);
+        }
+        await connection.commit();
         res.json({ success: true });
     } catch (e) {
+        await connection.rollback();
         res.status(500).json({ error: e.message });
+    } finally {
+        connection.release();
     }
 });
 

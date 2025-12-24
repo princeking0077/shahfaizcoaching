@@ -20,37 +20,36 @@ const verifyAdmin = (req, res, next) => {
 router.use(verifyAdmin);
 
 // === TEACHERS ===
-router.get('/teachers', (req, res) => {
+router.get('/teachers', async (req, res) => {
     try {
-        const teachers = db.prepare('SELECT id, name, username, email FROM users WHERE role = ?').all('teacher');
+        const [teachers] = await db.query('SELECT id, name, username, email FROM users WHERE role = ?', ['teacher']);
         res.json(teachers);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-router.post('/teachers', (req, res) => {
+router.post('/teachers', async (req, res) => {
     const { name, username, password, email } = req.body;
     try {
         const hash = bcrypt.hashSync(password, 10);
-        const result = db.prepare('INSERT INTO users (username, password, role, name, email) VALUES (?, ?, ?, ?, ?)')
-            .run(username, hash, 'teacher', name, email);
-        res.json({ id: result.lastInsertRowid, message: 'Teacher created successfully' });
+        const [result] = await db.query('INSERT INTO users (username, password, role, name, email) VALUES (?, ?, ?, ?, ?)',
+            [username, hash, 'teacher', name, email]);
+        res.json({ id: result.insertId, message: 'Teacher created successfully' });
     } catch (err) {
-        res.status(500).json({ error: 'Username likely exists or server error' });
+        res.status(500).json({ error: 'Username likely exists or server error: ' + err.message });
     }
 });
 
 // === STUDENTS ===
-router.get('/students', (req, res) => {
+router.get('/students', async (req, res) => {
     try {
-        // Join with batches to get batch name
-        const students = db.prepare(`
-      SELECT s.id, u.name, b.name as batch_name, s.parent_name, s.phone 
-      FROM students s
-      JOIN users u ON s.user_id = u.id
-      LEFT JOIN batches b ON s.batch_id = b.id
-    `).all();
+        const [students] = await db.query(`
+            SELECT s.id, u.name, b.name as batch_name, s.parent_name, s.phone 
+            FROM students s
+            JOIN users u ON s.user_id = u.id
+            LEFT JOIN batches b ON s.batch_id = b.id
+        `);
         res.json(students);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -58,31 +57,43 @@ router.get('/students', (req, res) => {
 });
 
 // === FEES ===
-router.get('/fees', (req, res) => {
-    const fees = db.prepare(`
-    SELECT f.*, u.name as student_name, b.name as batch_name
-    FROM fees f
-    JOIN students s ON f.student_id = s.id
-    JOIN users u ON s.user_id = u.id
-    LEFT JOIN batches b ON s.batch_id = b.id
-  `).all();
-    res.json(fees);
+router.get('/fees', async (req, res) => {
+    try {
+        const [fees] = await db.query(`
+            SELECT f.*, u.name as student_name, b.name as batch_name
+            FROM fees f
+            JOIN students s ON f.student_id = s.id
+            JOIN users u ON s.user_id = u.id
+            LEFT JOIN batches b ON s.batch_id = b.id
+        `);
+        res.json(fees);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // Add Fee Record
-router.post('/fees', (req, res) => {
+router.post('/fees', async (req, res) => {
     const { student_id, amount_total, due_date } = req.body;
-    const result = db.prepare('INSERT INTO fees (student_id, amount_total, due_date) VALUES (?, ?, ?)')
-        .run(student_id, amount_total, due_date);
-    res.json({ success: true, id: result.lastInsertRowid });
+    try {
+        const [result] = await db.query('INSERT INTO fees (student_id, amount_total, due_date) VALUES (?, ?, ?)',
+            [student_id, amount_total, due_date]);
+        res.json({ success: true, id: result.insertId });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // Update Fee Payment
-router.put('/fees/:id', (req, res) => {
+router.put('/fees/:id', async (req, res) => {
     const { amount_paid, status } = req.body;
-    db.prepare('UPDATE fees SET amount_paid = ?, status = ? WHERE id = ?')
-        .run(amount_paid, status, req.params.id);
-    res.json({ success: true });
+    try {
+        await db.query('UPDATE fees SET amount_paid = ?, status = ? WHERE id = ?',
+            [amount_paid, status, req.params.id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 module.exports = router;

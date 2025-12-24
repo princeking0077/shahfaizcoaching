@@ -6,11 +6,13 @@ const jwt = require('jsonwebtoken');
 
 const SECRET_KEY = process.env.JWT_SECRET || 'kalam_secret_key_123';
 
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
     try {
-        const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+        const [rows] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
+        const user = rows[0];
+
         if (!user) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
