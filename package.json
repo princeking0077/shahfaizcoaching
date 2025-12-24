@@ -6,19 +6,24 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "cd client && npm install && npm run build",
-    "start": "node server/index.js",
-    "dev": "concurrently \"npm run start:server\" \"npm run start:client\"",
-    "start:server": "cd server && npm run dev",
-    "start:client": "cd client && npm run dev"
+    "start": "node index.js",
+    "dev": "concurrently \"nodemon index.js\" \"cd client && npm run dev\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.11"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.5.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.562.0",
     "react-router-dom": "^7.11.0"
   }
