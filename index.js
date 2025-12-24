@@ -26,7 +26,19 @@ app.get('/api', (req, res) => {
 
 // For any request that doesn't match an API route, send back the React index.html
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client/dist/index.html'));
+    const fs = require('fs');
+    const indexPath = path.join(__dirname, 'client/dist/index.html');
+
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.status(200).send(`
+            <h1>Backend is Running! 🚀</h1>
+            <p>However, the React frontend build (client/dist) is missing.</p>
+            <p>Ensure that 'npm run build' completed successfully on the server.</p>
+            <p>Also, make sure you have added the Environment Variables (DB_USER, etc.) in Hostinger.</p>
+        `);
+    }
 });
 
 app.listen(PORT, () => {
