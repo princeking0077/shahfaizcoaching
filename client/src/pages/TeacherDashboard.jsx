@@ -35,7 +35,7 @@ const TeacherDashboard = () => {
 
     const fetchBatches = async () => {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5000/api/teacher/batches', {
+        const res = await fetch('/api/teacher/batches', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) setBatches(await res.json());
@@ -43,7 +43,7 @@ const TeacherDashboard = () => {
 
     const fetchStudents = async (batchId) => {
         const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:5000/api/teacher/batches/${batchId}/students`, {
+        const res = await fetch(`/api/teacher/batches/${batchId}/students`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -58,7 +58,7 @@ const TeacherDashboard = () => {
     const handleCreateBatch = async (e) => {
         e.preventDefault();
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5000/api/teacher/batches', {
+        const res = await fetch('/api/teacher/batches', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify(newBatch)
@@ -73,7 +73,7 @@ const TeacherDashboard = () => {
     const handleAddStudent = async (e) => {
         e.preventDefault();
         const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:5000/api/teacher/batches/${selectedBatch.id}/students`, {
+        const res = await fetch(`/api/teacher/batches/${selectedBatch.id}/students`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify(newStudent)
@@ -92,7 +92,7 @@ const TeacherDashboard = () => {
             status: attendanceStatus[s.id]
         }));
 
-        const res = await fetch('http://localhost:5000/api/teacher/attendance', {
+        const res = await fetch('/api/teacher/attendance', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({
@@ -113,7 +113,7 @@ const TeacherDashboard = () => {
             total_marks: examData.total_marks
         }));
 
-        const res = await fetch('http://localhost:5000/api/teacher/marks', {
+        const res = await fetch('/api/teacher/marks', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({

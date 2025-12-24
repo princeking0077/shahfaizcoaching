@@ -24,10 +24,10 @@ const AdminDashboard = () => {
 
         try {
             if (activeTab === 'teachers') {
-                const res = await fetch('http://localhost:5000/api/admin/teachers', { headers });
+                const res = await fetch('/api/admin/teachers', { headers });
                 if (res.ok) setTeachers(await res.json());
             } else if (activeTab === 'students') {
-                const res = await fetch('http://localhost:5000/api/admin/students', { headers });
+                const res = await fetch('/api/admin/students', { headers });
                 if (res.ok) setStudents(await res.json());
             }
         } catch (err) {
