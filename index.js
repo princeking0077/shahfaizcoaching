@@ -59,6 +59,12 @@ async function startApp() {
                 res.status(500).json({
                     status: 'error',
                     error: e.message || e.toString(),
+                    config_check: {
+                        DB_HOST: process.env.DB_HOST ? '✅ Set: ' + process.env.DB_HOST : '❌ MISSING (Default: localhost)',
+                        DB_USER: process.env.DB_USER ? '✅ Set: ' + process.env.DB_USER : '❌ MISSING (Default: root)',
+                        DB_PASS: process.env.DB_PASSWORD ? '✅ Set (Hidden)' : '❌ MISSING (Default: empty)',
+                        DB_NAME: process.env.DB_NAME ? '✅ Set: ' + process.env.DB_NAME : '❌ MISSING (Default: kalam)'
+                    },
                     logs: e.logs || ['Script failed before logging started']
                 });
             }
