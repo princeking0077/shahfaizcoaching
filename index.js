@@ -48,6 +48,17 @@ async function startApp() {
             }
         });
 
+        // Seeding Route (Manual Fix)
+        app.get('/api/seed', async (req, res) => {
+            try {
+                const seedData = require('./seed');
+                await seedData(db);
+                res.json({ status: 'success', message: 'Database seeded with Admin, Teacher, and Student.' });
+            } catch (e) {
+                res.status(500).json({ status: 'error', error: e.message });
+            }
+        });
+
         // Catch-all (Regex for Express 5 compatibility)
         app.get(/.*/, (req, res) => {
             const index = path.join(__dirname, 'client/dist/index.html');
