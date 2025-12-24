@@ -52,10 +52,15 @@ async function startApp() {
         app.get('/api/seed', async (req, res) => {
             try {
                 const seedData = require('./seed');
-                await seedData(db);
-                res.json({ status: 'success', message: 'Database seeded with Admin, Teacher, and Student.' });
+                const result = await seedData(db);
+                res.json({ status: 'success', logs: result.logs });
             } catch (e) {
-                res.status(500).json({ status: 'error', error: e.message });
+                // If seed.js threw an object with logs, use that.
+                res.status(500).json({
+                    status: 'error',
+                    error: e.message || e.toString(),
+                    logs: e.logs || ['Script failed before logging started']
+                });
             }
         });
 
