@@ -48,8 +48,8 @@ async function startApp() {
             }
         });
 
-        // Catch-all
-        app.get('*', (req, res) => {
+        // Catch-all (Regex for Express 5 compatibility)
+        app.get(/.*/, (req, res) => {
             const index = path.join(__dirname, 'client/dist/index.html');
             if (fs.existsSync(index)) res.sendFile(index);
             else res.send(`<h1>Backend Running (Safe Mode v4)</h1><p>Frontend not found.</p>`);
