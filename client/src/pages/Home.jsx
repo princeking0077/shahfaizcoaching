@@ -1,55 +1,72 @@
 import { Link } from 'react-router-dom';
-import { BookOpen, Users, Award, ArrowRight } from 'lucide-react';
+import { BookOpen, Users, Award, ArrowRight, Zap, Target, Star } from 'lucide-react';
 
 const Home = () => {
     return (
-        <div className="min-h-screen">
+        <div className="min-h-screen overflow-hidden">
             {/* Navbar */}
-            <nav className="p-6 flex justify-between items-center container">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
-                    Kalam Coaching
-                </h1>
-                <Link to="/login" className="btn btn-primary">
-                    Login Portal
-                </Link>
+            <nav className="fixed top-0 w-full z-50 backdrop-blur-md border-b border-white/5 bg-slate-900/50">
+                <div className="container py-4 flex justify-between items-center">
+                    <h1 className="text-2xl font-bold tracking-tight">
+                        <span className="text-white">Kalam</span>
+                        <span className="text-yellow-400">Coaching</span>
+                    </h1>
+                    <Link to="/login" className="btn btn-primary px-6 py-2 text-sm">
+                        Student Portal
+                    </Link>
+                </div>
             </nav>
 
             {/* Hero Section */}
-            <header className="container min-h-[80vh] flex flex-col justify-center items-center text-center animate-fade-in relative z-10">
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full h-full -z-10 opacity-20 pointer-events-none">
-                    <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-                    <div className="absolute top-20 right-20 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
-                </div>
+            <header className="relative min-h-screen flex flex-col justify-center items-center text-center px-4 pt-20">
+                {/* Background Blobs */}
+                <div className="absolute top-20 left-10 w-96 h-96 bg-purple-600 rounded-full mix-blend-multiply filter blur-[128px] opacity-30 animate-float"></div>
+                <div className="absolute bottom-20 right-10 w-96 h-96 bg-amber-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
 
-                <h2 className="text-6xl font-bold mb-6 leading-tight">
-                    Igniting Minds, <br />
-                    <span className="text-yellow-400">Shaping Futures.</span>
-                </h2>
-                <p className="text-xl text-gray-300 max-w-2xl mb-8">
-                    Premium coaching for Class 1 to 10. We nurture talent with world-class personalized education and detailed performance analytics.
-                </p>
-                <Link to="/login" className="btn btn-primary text-lg flex items-center gap-2">
-                    Get Started <ArrowRight size={20} />
-                </Link>
+                <div className="relative z-10 max-w-4xl space-y-8 animate-enter">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border-none bg-white/5 text-yellow-400 font-medium text-sm mb-4">
+                        <Star size={16} fill="currentColor" />
+                        <span>#1 Coaching Institute for Class 1-10</span>
+                    </div>
+
+                    <h2 className="text-6xl md:text-8xl font-bold leading-tight tracking-tight">
+                        Unleash Your <br />
+                        <span className="text-gradient-gold">Inner Genius.</span>
+                    </h2>
+
+                    <p className="text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
+                        Precision learning crafted for excellence. We monitor every mark, attendance,
+                        and milestone to ensure your child doesn't just pass, but <span className="text-white font-semibold">thrives</span>.
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+                        <Link to="/login" className="btn btn-primary text-lg flex items-center justify-center gap-2 group">
+                            Start Learning Now <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                        <button className="px-8 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-colors font-medium text-slate-300">
+                            View Syllabus
+                        </button>
+                    </div>
+                </div>
             </header>
 
-            {/* Features Section */}
-            <section className="py-20 bg-gray-900/50">
+            {/* Features Stats */}
+            <section className="py-20 bg-slate-900/50 border-y border-white/5 relative z-10">
                 <div className="container grid md:grid-cols-3 gap-8">
                     <FeatureCard
-                        icon={<Users className="text-yellow-400" size={32} />}
-                        title="Expert Faculty"
-                        desc="Learn from the best educators in the country with personalized attention."
+                        icon={<Users className="text-purple-400" size={32} />}
+                        title="Elite Mentorship"
+                        desc="1:1 attention from top-tier educators dedicated to student success."
                     />
                     <FeatureCard
-                        icon={<BookOpen className="text-yellow-400" size={32} />}
-                        title="Comprehensive Material"
-                        desc="Curated study materials aligned with the latest curriculum."
+                        icon={<Zap className="text-yellow-400" size={32} />}
+                        title="Smart Analytics"
+                        desc="Data-driven insights into attendance, marks, and learning curves."
                     />
                     <FeatureCard
-                        icon={<Award className="text-yellow-400" size={32} />}
-                        title="Performance Tracking"
-                        desc="Real-time attendance and marks analysis for parents and students."
+                        icon={<Target className="text-blue-400" size={32} />}
+                        title="Proven Results"
+                        desc="Year-on-year record of academic excellence and top rankings."
                     />
                 </div>
             </section>
@@ -58,10 +75,12 @@ const Home = () => {
 };
 
 const FeatureCard = ({ icon, title, desc }) => (
-    <div className="glass-card hover:scale-105 transition-transform duration-300">
-        <div className="mb-4">{icon}</div>
-        <h3 className="text-xl font-bold mb-2">{title}</h3>
-        <p className="text-gray-400">{desc}</p>
+    <div className="glass-card p-8 group cursor-default">
+        <div className="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center mb-6 group-hover:bg-white/10 transition-colors">
+            {icon}
+        </div>
+        <h3 className="text-2xl font-bold mb-3 text-white group-hover:text-yellow-400 transition-colors">{title}</h3>
+        <p className="text-slate-400 leading-relaxed">{desc}</p>
     </div>
 );
 
