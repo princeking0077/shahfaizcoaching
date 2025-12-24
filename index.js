@@ -1,78 +1,81 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const db = require('./database'); // Safe import (no auto-execution)
+const http = require('http');
 
-const app = express();
-const PORT = process.env.PORT || 5000;
-
-// Env Check
-const requiredEnv = ['DB_HOST', 'DB_USER', 'DB_NAME', 'JWT_SECRET'];
-const missingEnv = requiredEnv.filter(key => !process.env[key]);
-if (missingEnv.length > 0) {
-    console.warn('⚠️ MISSING ENV VARS:', missingEnv.join(', '));
-} else {
-    console.log('✅ All Env Vars present.');
-}
-
-const authRoutes = require('./routes/auth');
-
-app.use(cors());
-app.use(express.json());
-
-app.use('/api/auth', authRoutes);
-app.use('/api/admin', require('./routes/admin'));
-app.use('/api/teacher', require('./routes/teacher'));
-app.use('/api/student', require('./routes/student'));
-
-// Safe Database Initialization
-db.initDb()
-    .then(() => console.log('✅ Database connected and initialized'))
-    .catch(err => {
-        console.error('❌ Database Initialization Failed (Non-Fatal):', err);
-    });
-
-// Serve static files from the React client
-const fs = require('fs');
-const clientBuildPath = path.join(__dirname, 'client/dist');
-
-if (fs.existsSync(clientBuildPath)) {
-    app.use(express.static(clientBuildPath));
-} else {
-    console.log('Client build not found at ' + clientBuildPath);
-}
-
-// API Routes
-app.get('/api', (req, res) => {
-    res.send('Kalam Coaching API Running');
-});
-
-app.get('/api/status', async (req, res) => {
+async function startApp() {
     try {
-        const connection = await db.getConnection();
-        await connection.query('SELECT 1');
-        connection.release();
-        res.json({ status: 'ok', database: 'connected' });
-    } catch (e) {
-        res.status(500).json({ status: 'error', database: 'disconnected', error: e.message });
+        const express = require('express');
+        const cors = require('cors');
+        const path = require('path');
+        const fs = require('fs');
+
+        // ------------- CHECK MODULES & ENV ----------------
+        const requiredEnv = ['DB_HOST', 'DB_USER', 'DB_NAME', 'JWT_SECRET'];
+        const missingEnv = requiredEnv.filter(key => !process.env[key]);
+        if (missingEnv.length > 0) console.warn('⚠️ MISSING ENV:', missingEnv.join(', '));
+
+        const db = require('./database');
+        // --------------------------------------------------
+
+        const app = express();
+        const PORT = process.env.PORT || 5000;
+
+        app.use(cors());
+        app.use(express.json());
+
+        // Import Routes safely
+        app.use('/api/auth', require('./routes/auth'));
+        app.use('/api/admin', require('./routes/admin'));
+        app.use('/api/teacher', require('./routes/teacher'));
+        app.use('/api/student', require('./routes/student'));
+
+        // DB Init - Non-blocking
+        db.initDb().catch(e => console.error('DB Init Error:', e));
+
+        // Serve Frontend
+        const clientBuildPath = path.join(__dirname, 'client/dist');
+        if (fs.existsSync(clientBuildPath)) {
+            app.use(express.static(clientBuildPath));
+        }
+
+        // Status Route
+        app.get('/api/status', async (req, res) => {
+            try {
+                const conn = await db.getConnection();
+                await conn.query('SELECT 1');
+                conn.release();
+                res.json({ status: 'ok', db: 'connected' });
+            } catch (e) {
+                res.status(500).json({ status: 'error', error: e.message });
+            }
+        });
+
+        // Catch-all
+        app.get('*', (req, res) => {
+            const index = path.join(__dirname, 'client/dist/index.html');
+            if (fs.existsSync(index)) res.sendFile(index);
+            else res.send(`<h1>Backend Running (Safe Mode v4)</h1><p>Frontend not found.</p>`);
+        });
+
+        app.listen(PORT, () => {
+            console.log(`Server running on ${PORT}`);
+        });
+
+    } catch (err) {
+        // ----------------------------------------------------------------
+        // FALLBACK SERVER: If ANYTHING crashes, we start this minimal server
+        // so we can see the error in the browser.
+        // ----------------------------------------------------------------
+        console.error('CRITICAL CRASH:', err);
+        const PORT = process.env.PORT || 5000;
+        const server = http.createServer((req, res) => {
+            res.writeHead(200, { 'Content-Type': 'text/html' });
+            res.end(`
+                <h1 style="color:red">Server Crashed at Startup 🚨</h1>
+                <pre style="background:#eee; padding:10px; border:1px solid #999;">${err.stack}</pre>
+                <p>Please fix the error shown above.</p>
+            `);
+        });
+        server.listen(PORT, () => console.log('Fallback server running on ' + PORT));
     }
-});
+}
 
-// For any request that doesn't match an API route
-app.get('*', (req, res) => {
-    const indexPath = path.join(__dirname, 'client/dist/index.html');
-
-    if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
-    } else {
-        res.status(200).send(`
-            <h1>Backend is Running! 🚀 (Safe Mode v3)</h1>
-            <p><strong>Database Status:</strong> Check Server Logs (console) for "Connection Failed" or "Success".</p>
-            <p><strong>Frontend Build Status:</strong> ${fs.existsSync(clientBuildPath) ? '✅ Found' : '❌ Not Found'}</p>
-        `);
-    }
-});
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+startApp();
