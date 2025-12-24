@@ -4,11 +4,12 @@ const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 // Create connection pool
+// Create connection pool
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'kalam',
+  host: 'localhost', // Hardcoded for Hostinger
+  user: 'u480091743_faiz',
+  password: 'Sk@001001',
+  database: 'u480091743_kalam',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
