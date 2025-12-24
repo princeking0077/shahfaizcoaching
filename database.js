@@ -126,6 +126,7 @@ async function seedAdmin() {
   }
 }
 
-initDb();
+// initDb(); // <--- REMOVED AUTO-EXECUTION to prevent crash
 
+promisePool.initDb = initDb; // Attach to export
 module.exports = promisePool;
