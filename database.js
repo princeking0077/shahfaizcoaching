@@ -6,7 +6,7 @@ require('dotenv').config();
 // Create connection pool
 // Create connection pool
 const pool = mysql.createPool({
-  host: 'localhost', // Hardcoded for Hostinger
+  host: '127.0.0.1', // Force IPv4 to avoid ::1 permission issues
   user: 'u480091743_faiz',
   password: 'Sk@001001',
   database: 'u480091743_kalam',
