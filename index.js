@@ -6,6 +6,15 @@ const db = require('./database'); // Safe import (no auto-execution)
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Env Check
+const requiredEnv = ['DB_HOST', 'DB_USER', 'DB_NAME', 'JWT_SECRET'];
+const missingEnv = requiredEnv.filter(key => !process.env[key]);
+if (missingEnv.length > 0) {
+    console.warn('⚠️ MISSING ENV VARS:', missingEnv.join(', '));
+} else {
+    console.log('✅ All Env Vars present.');
+}
+
 const authRoutes = require('./routes/auth');
 
 app.use(cors());
@@ -21,7 +30,6 @@ db.initDb()
     .then(() => console.log('✅ Database connected and initialized'))
     .catch(err => {
         console.error('❌ Database Initialization Failed (Non-Fatal):', err);
-        // We do NOT crash the server. We let it run so we can see the frontend.
     });
 
 // Serve static files from the React client
@@ -37,6 +45,17 @@ if (fs.existsSync(clientBuildPath)) {
 // API Routes
 app.get('/api', (req, res) => {
     res.send('Kalam Coaching API Running');
+});
+
+app.get('/api/status', async (req, res) => {
+    try {
+        const connection = await db.getConnection();
+        await connection.query('SELECT 1');
+        connection.release();
+        res.json({ status: 'ok', database: 'connected' });
+    } catch (e) {
+        res.status(500).json({ status: 'error', database: 'disconnected', error: e.message });
+    }
 });
 
 // For any request that doesn't match an API route
