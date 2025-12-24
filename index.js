@@ -47,7 +47,7 @@ app.get('*', (req, res) => {
         res.sendFile(indexPath);
     } else {
         res.status(200).send(`
-            <h1>Backend is Running! 🚀</h1>
+            <h1>Backend is Running! 🚀 (Safe Mode v2)</h1>
             <p><strong>Database Status:</strong> Check Server Logs (console) for "Connection Failed" or "Success".</p>
             <p><strong>Frontend Build Status:</strong> ${fs.existsSync(clientBuildPath) ? '✅ Found' : '❌ Not Found'}</p>
         `);
